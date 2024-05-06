@@ -1,0 +1,139 @@
+import requests
+from tkinter import *
+from tkinter import messagebox
+from datetime import datetime as dt
+import html
+
+THEME_COLOR = "#375362"
+
+screen = Tk()
+screen.title("weather data")
+screen.config(pady=100, padx=100, bg=THEME_COLOR)
+
+# new_API_key = "efc312922914e0a4ab61a7128575c584"
+# latitude = 17.974024
+# longitude = 79.60068
+
+
+canvas = Canvas(width=90, height=90, bg=THEME_COLOR, highlightthickness=0)
+icons_link = PhotoImage(file=f"01n@2x.png")
+imagec = canvas.create_image(0, 0,anchor=NW, image="")
+T = canvas.create_text(40,15,text="", font=("arial", 10, "normal"), fill="white")
+canvas.grid(column=1, row=3)
+canvas_image = imagec
+
+def get_loc():
+    global image, imagec, T, t
+    location = city_entry.get()
+
+    try:
+
+        responce = requests.get(f"https://api.openweathermap.org/data/2.5/weather?q={location}&appid=df0d6c5bde1be2a45687c4e9ea219513&units=metric")
+        data = responce.json()
+        print(data)
+        icons = data['weather'][0]['icon']
+    except KeyError:
+        messagebox.showerror("ERROR", message="please enter a valid name")
+    else:
+        icons = data['weather'][0]['icon']
+
+        img = f"{icons}@2x.png"
+        print(img)
+        image = PhotoImage(file=img)
+        canvas.itemconfig(imagec, image=image)
+        canvas.itemconfig(T, text=f"{data['weather'][0]['description']}")
+
+        sunriset = data['sys']['sunrise']
+        dt_obj = dt.fromtimestamp(sunriset)
+
+        sunsett = data['sys']['sunset']
+        dt_obj1 = dt.fromtimestamp(sunsett)
+
+        label.config(text="Here is the info",fg="black", font=("arial", 25, "bold"))
+        temp.config(text=f"temperature : {data['main']['temp']}k", font=("arial", 20, "normal"))
+        humidity.config(text=f"humidity : {data['main']['humidity']}%rh", font=("arial", 20, "normal"))
+        wind_speed.config(text=f"Wind Speed : {data['wind']['speed']}m/h", font=("arial", 20, "normal"))
+        wind_direction.config(text=f"Wind Direction : {data['wind']['deg']}", font=("arial", 20, "normal"))
+        atmospheric_pressure.config(text=f"atmospheric pressure : {data['main']['pressure']}hPa",
+                                    font=("arial", 20, "normal"))
+        visibility.config(text=f"visibility : {data['visibility']}meters", font=("arial", 20, "normal"))
+        sunrise.config(text=f"sunrise time : {dt_obj}", font=("arial", 20, "normal"))
+        sunset.config(text=f"sunset time : {dt_obj1}", font=("arial", 20, "normal"))
+        clear_button.config(text="clear")
+        # clear_button.grid(columnspan=1, row=8)
+
+        convert.config(text="convert to celsius")
+        # convert.grid(column=0, row=4)
+
+
+def clear_all():
+    global imagec
+    city_entry.delete(0,END)
+    label.config(text="")
+    temp.config(text="")
+    humidity.config(text="")
+    wind_speed.config(text="")
+    wind_direction.config(text="")
+    atmospheric_pressure.config(text="")
+    visibility.config(text="")
+    sunrise.config(text="")
+    sunset.config(text="")
+    convert.config(text="")
+    canvas.itemconfig(imagec,image="")
+    clear_button.config(text="")
+    canvas.itemconfig(T, text="")
+
+def k_to_c():
+    location = city_entry.get()
+    responce = requests.get(f"https://api.openweathermap.org/data/2.5/weather?q={location}&appid=df0d6c5bde1be2a45687c4e9ea219513&units=metric")
+    data = responce.json()
+    temperature = data['main']['temp']
+    celsius = round(temperature - 273.15,2)
+    temp.config(text=f"temperature : {celsius}Celsius", font=("arial", 20, "normal"))
+
+city_name = Label(text=f"city name : ", font=("arial", 20, "bold"), bg=THEME_COLOR)
+city_name.grid(column=0, row=0)
+
+city_entry = Entry(font=("arial", 20, "normal"))
+city_entry.grid(column=1, row=0, columnspan=2)
+
+get_location = Button(text="get details",fg="white", command=get_loc, font=("arial", 15, "bold"), bg=THEME_COLOR)
+get_location.grid(columnspan=2,row=1)
+
+
+
+label = Label(text="", bg=THEME_COLOR, fg="brown")
+label.grid(column=1, row=2)
+
+temp = Label(text="", bg=THEME_COLOR)
+temp.grid(column=0, row=3)
+
+humidity = Label(text="", bg=THEME_COLOR,fg="white")
+humidity.grid(column=2, row=3)
+
+wind_speed = Label(text="", bg=THEME_COLOR,fg="white")
+wind_speed.grid(column=2, row=4)
+
+wind_direction = Label(text="", bg=THEME_COLOR,fg="white")
+wind_direction.grid(column=2, row=5)
+
+atmospheric_pressure = Label(text="", bg=THEME_COLOR,fg="white")
+atmospheric_pressure.grid(column=2, row=6)
+
+visibility = Label(text="", bg=THEME_COLOR,fg="white")
+visibility.grid(column=2, row=7)
+
+sunrise = Label(text="", bg=THEME_COLOR)
+sunrise.grid(column=0, row=5, columnspan=2)
+
+sunset = Label(text="", bg=THEME_COLOR)
+sunset.grid(column=0, row=6, columnspan=2)
+
+convert = Button(text="", bg=THEME_COLOR, fg="white", font=("arial", 15, "normal"), command=k_to_c)
+convert.grid(column=0, row=4)
+
+clear_button = Button(text="", font=("arial", 15, "normal"), fg="white", bg=THEME_COLOR, command=clear_all)
+clear_button.grid(columnspan=1, row=8)
+# re = requests.get("https://openweathermap.org/img/wn/02d@2x.png")
+
+screen.mainloop()
